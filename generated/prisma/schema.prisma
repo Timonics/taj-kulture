@@ -1,0 +1,165 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+  module   = "esm"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id               String   @id @default(uuid())
+  email            String   @unique
+  phone            String?  @unique
+  fullName         String
+  avatarUrl        String?
+  isPhoneVerified  Boolean  @default(false)
+  sabiScore        Int      @default(0)
+  referralCode     String?  @unique
+  role             String   @default("customer") // "customer" | "admin"
+  refreshTokenHash String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  orders            Order[]
+  reviews           Review[]
+  lookbookPosts     LookbookPost[]
+  sentReferrals     Referral[]     @relation("Referrer")
+  receivedReferrals Referral[]     @relation("Referred")
+
+  // Indexes for performance
+  @@index([email])
+  @@index([phone])
+  @@index([referralCode])
+}
+
+model Order {
+  id              String   @id @default(uuid())
+  userId          String
+  orderNumber     String   @unique
+  totalAmount     Float
+  discountAmount  Float    @default(0)
+  status          String   @default("pending") // pending, paid, shipped, delivered, cancelled
+  paymentMethod   String?
+  paymentStatus   String   @default("unpaid") // unpaid, paid, failed, refunded
+  shippingAddress Json
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  user  User        @relation(fields: [userId], references: [id])
+  items OrderItem[]
+
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model OrderItem {
+  id               String @id @default(uuid())
+  orderId          String
+  productVariantId String
+  quantity         Int
+  priceAtPurchase  Float
+
+  order          Order          @relation(fields: [orderId], references: [id])
+  productVariant ProductVariant @relation(fields: [productVariantId], references: [id])
+
+  @@index([orderId])
+  @@index([productVariantId])
+}
+
+model Product {
+  id            String    @id @default(uuid())
+  name          String
+  slug          String    @unique
+  description   String?
+  basePrice     Float
+  category      String
+  collection    String?
+  images        String[] // array of Cloudinary URLs
+  isLimitedDrop Boolean   @default(false)
+  dropStartTime DateTime?
+  dropEndTime   DateTime?
+  isActive      Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  variants ProductVariant[]
+  reviews  Review[]
+
+  @@index([slug])
+  @@index([category])
+  @@index([isActive])
+  @@index([isLimitedDrop])
+}
+
+model ProductVariant {
+  id              String @id @default(uuid())
+  productId       String
+  size            String
+  color           String
+  additionalPrice Float  @default(0)
+  stockQuantity   Int    @default(0)
+  sku             String @unique
+
+  product    Product     @relation(fields: [productId], references: [id])
+  orderItems OrderItem[]
+
+  @@index([productId])
+  @@index([sku])
+  @@index([size, color]) // for filtering
+}
+
+model Review {
+  id                 String   @id @default(uuid())
+  userId             String
+  productId          String
+  rating             Int
+  comment            String?
+  images             String[]
+  isVerifiedPurchase Boolean  @default(false)
+  createdAt          DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id])
+  product Product @relation(fields: [productId], references: [id])
+
+  @@index([productId])
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model LookbookPost {
+  id               String   @id @default(uuid())
+  userId           String
+  imageUrl         String
+  taggedProductIds String[] // array of product IDs
+  caption          String?
+  status           String   @default("pending") // pending, approved, rejected
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([status])
+}
+
+model Referral {
+  id           String   @id @default(uuid())
+  referrerId   String
+  referredId   String   @unique
+  rewardStatus String   @default("pending") // pending, rewarded
+  createdAt    DateTime @default(now())
+
+  referrer User @relation("Referrer", fields: [referrerId], references: [id])
+  referred User @relation("Referred", fields: [referredId], references: [id])
+
+  @@index([referrerId])
+  @@index([referredId])
+}
