@@ -1,4 +1,3 @@
-```markdown
 # TAJ Kulture Backend
 
 **TAJ Kulture** is a streetwear clothing brand for Nigerian Gen Z. This backend serves as the core e‑commerce, community, and gamification platform – built with **NestJS**, **Prisma**, **PostgreSQL**, **Redis**, and **Bull** queues.
@@ -367,4 +366,3 @@ Proprietary – all rights reserved.
 
 **TAJ Kulture – Where street culture meets community.**  
 Built with ❤️ for Nigerian Gen Z.
-```
