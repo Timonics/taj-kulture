@@ -3,21 +3,22 @@ import {
   BadRequestException,
   UnauthorizedException,
   ConflictException,
+  Inject,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import * as bcrypt from 'bcrypt';
-import { PrismaService } from '@/shared/infrastructure/database/prisma.service';
 import { RedisService } from '@/shared/infrastructure/redis/redis.service';
 import { UserRegisteredEvent } from '../domain/events/user-registered.event';
 import { RegisterDto } from './dto/register.dto';
 import { VerifyOtpDto } from './dto/verify-otp.dto';
+import { AuthRepository } from '../domain/auth.repository.interface';
 
 @Injectable()
 export class AuthService {
   constructor(
-    private prisma: PrismaService,
+    @Inject('AuthRepository') private authRepository: AuthRepository,
     private redis: RedisService,
     private jwtService: JwtService,
     private config: ConfigService,
@@ -39,9 +40,7 @@ export class AuthService {
     }
     await this.redis.del(`otp:${dto.phone}`);
 
-    let user = await this.prisma.user.findUnique({
-      where: { phone: dto.phone },
-    });
+    let user = await this.authRepository.findByPhone(dto.phone);
     if (!user) {
       // New user: must provide email and fullName
       if (!dto.email || !dto.fullName) {
@@ -49,20 +48,14 @@ export class AuthService {
           'New users must provide email and full name',
         );
       }
-      const existingEmail = await this.prisma.user.findUnique({
-        where: { email: dto.email },
-      });
+      const existingEmail = await this.authRepository.findByEmail(dto.email);
       if (existingEmail)
         throw new ConflictException('Email already registered');
-      user = await this.prisma.user.create({
-        data: {
-          phone: dto.phone,
-          email: dto.email,
-          fullName: dto.fullName,
-          referralCode: `TAJ${Math.random().toString(36).substring(2, 8).toUpperCase()}`,
-          isPhoneVerified: true,
-        },
-      });
+      user = await this.authRepository.create(
+        dto.phone,
+        dto.email,
+        dto.fullName,
+      );
       // Emit domain event for new registration
       this.eventEmitter.emit(
         'auth.user.registered',
@@ -71,9 +64,8 @@ export class AuthService {
     } else {
       // Existing user – ensure phone is verified
       if (!user.isPhoneVerified) {
-        user = await this.prisma.user.update({
-          where: { id: user.id },
-          data: { isPhoneVerified: true },
+        user = await this.authRepository.update(user.id, {
+          isPhoneVerified: true,
         });
       }
     }
@@ -84,16 +76,13 @@ export class AuthService {
 
   async register(dto: RegisterDto) {
     // Alternative registration without OTP (if needed)
-    const existing = await this.prisma.user.findFirst({
-      where: { OR: [{ email: dto.email }, { phone: dto.phone }] },
-    });
+    const existing = await this.authRepository.findFirst(dto.email, dto.phone);
     if (existing) throw new ConflictException('User already exists');
-    const user = await this.prisma.user.create({
-      data: {
-        ...dto,
-        referralCode: `TAJ${Math.random().toString(36).substring(2, 8).toUpperCase()}`,
-      },
-    });
+    const user = await this.authRepository.create(
+      dto.phone,
+      dto.email,
+      dto.fullName,
+    );
     this.eventEmitter.emit(
       'auth.user.registered',
       new UserRegisteredEvent(user.id, user.email, user.phone, user.fullName),
@@ -118,10 +107,7 @@ export class AuthService {
       },
     );
     const hashed = await bcrypt.hash(refreshToken, 10);
-    await this.prisma.user.update({
-      where: { id: userId },
-      data: { refreshTokenHash: hashed },
-    });
+    await this.authRepository.update(userId, { refreshTokenHash: hashed });
     return { accessToken, refreshToken };
   }
 
@@ -134,9 +120,7 @@ export class AuthService {
     } catch {
       throw new UnauthorizedException('Invalid refresh token');
     }
-    const user = await this.prisma.user.findUnique({
-      where: { id: payload.sub },
-    });
+    const user = await this.authRepository.findById(payload.sub);
     if (!user || !user.refreshTokenHash)
       throw new UnauthorizedException('No session');
     const isValid = await bcrypt.compare(refreshToken, user.refreshTokenHash);
@@ -145,10 +129,7 @@ export class AuthService {
   }
 
   async logout(userId: string) {
-    await this.prisma.user.update({
-      where: { id: userId },
-      data: { refreshTokenHash: null },
-    });
+    await this.authRepository.update(userId, { refreshTokenHash: null });
     return { message: 'Logged out' };
   }
 }

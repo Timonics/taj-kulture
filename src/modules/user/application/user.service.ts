@@ -5,7 +5,7 @@ import {
   Inject,
 } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { UserRepository } from '../repository/user.repository.interface';
+import { UserRepository } from '../domain/user.repository.interface';
 import { UserSabiScoreUpdatedEvent } from '../domain/events/user-sabi-score-updated.event';
 import { UserReferredEvent } from '../domain/events/user-referred.event';
 import { UpdateProfileDto } from './dto/update-profile.dto';

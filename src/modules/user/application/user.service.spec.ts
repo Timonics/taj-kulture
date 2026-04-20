@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { UserService } from './user.service';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { UserRepository } from '../repository/user.repository.interface';
+import { UserRepository } from '../domain/user.repository.interface';
 
 describe('UserService', () => {
   let service: UserService;

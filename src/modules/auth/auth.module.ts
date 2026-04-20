@@ -4,6 +4,7 @@ import { ConfigService } from '@nestjs/config';
 import { AuthService } from './application/auth.service';
 import { AuthController } from './auth.controller';
 import { UserRegisteredHandler } from './application/handlers/user-registered.handler';
+import { PrismaAuthRepository } from './infrastructure/auth.repository.impl';
 
 @Module({
   imports: [
@@ -16,6 +17,10 @@ import { UserRegisteredHandler } from './application/handlers/user-registered.ha
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, UserRegisteredHandler],
+  providers: [
+    AuthService,
+    UserRegisteredHandler,
+    { provide: 'AuthRepository', useClass: PrismaAuthRepository },
+  ],
 })
 export class AuthModule {}

@@ -8,6 +8,8 @@ export class QueueService {
     @InjectQueue('email') private emailQueue: Queue,
     @InjectQueue('notification') private notificationQueue: Queue,
     @InjectQueue('analytics') private analyticsQueue: Queue,
+    @InjectQueue('inventory') private inventoryQueue: Queue,
+    @InjectQueue('sabi-score') private sabiScoreQueue: Queue,
   ) {}
 
   async addEmailJob(data: {
@@ -28,5 +30,27 @@ export class QueueService {
 
   async addAnalyticsJob(event: string, payload: any) {
     await this.analyticsQueue.add('track', { event, payload });
+  }
+
+  async addInventoryJob(orderId: string) {
+    await this.inventoryQueue.add(
+      'deduct',
+      { orderId },
+      {
+        attempts: 3,
+        backoff: { type: 'exponential', delay: 2000 },
+      },
+    );
+  }
+
+  async addSabiScoreJob(userId: string, points: number, reason: string) {
+    await this.sabiScoreQueue.add(
+      'add',
+      { userId, points, reason },
+      {
+        attempts: 3,
+        backoff: { type: 'exponential', delay: 1000 },
+      },
+    );
   }
 }

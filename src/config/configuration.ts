@@ -15,4 +15,7 @@ export default () => ({
     apiKey: process.env.TERMII_API_KEY,
     senderId: process.env.TERMII_SENDER_ID,
   },
+  paystack: {
+    secretkey: process.env.PAYSTACK_SECRET_KEY,
+  },
 });

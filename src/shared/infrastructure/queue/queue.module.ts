@@ -22,6 +22,8 @@ import { EmailProcessor } from './processors/email.processor';
       { name: 'email' },
       { name: 'notification' },
       { name: 'analytics' },
+      { name: 'inventory' },
+      { name: 'sabi-score' },    
     ),
   ],
   providers: [
