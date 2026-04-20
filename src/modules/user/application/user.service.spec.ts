@@ -2,11 +2,15 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { UserService } from './user.service';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { UserRepository } from '../domain/user.repository.interface';
+import { extractPublicId } from '@/shared/utils/cloudinary.util';
+import { CloudinaryService } from '@/shared/infrastructure/cloudinary/cloudinary.service';
+import { NotFoundException } from '@nestjs/common';
 
 describe('UserService', () => {
   let service: UserService;
   let mockRepo: jest.Mocked<UserRepository>;
   let mockEventEmitter: jest.Mocked<EventEmitter2>;
+  let mockCloudinaryService: jest.Mocked<CloudinaryService>;
 
   beforeEach(async () => {
     mockRepo = {
@@ -16,12 +20,18 @@ describe('UserService', () => {
       updateProfile: jest.fn(),
       createReferral: jest.fn(),
     };
+
+    mockCloudinaryService = {
+      deleteFile: jest.fn().mockResolvedValue({}),
+    } as any;
+
     mockEventEmitter = { emit: jest.fn() } as any;
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         UserService,
         { provide: 'UserRepository', useValue: mockRepo },
+        { provide: CloudinaryService, useValue: mockCloudinaryService },
         { provide: EventEmitter2, useValue: mockEventEmitter },
       ],
     }).compile();
@@ -41,6 +51,64 @@ describe('UserService', () => {
     const result = await service.getProfile('1');
     expect(result).toMatchObject({ id: '1', email: 'test@test.com' });
     expect(result).not.toHaveProperty('refreshTokenHash');
+  });
+
+  describe('updateProfile', () => {
+    it('should update profile and delete old avatar if new avatar provided', async () => {
+      const user = {
+        id: 'user1',
+        fullName: 'Old Name',
+        avatarUrl: 'https://res.cloudinary.com/old.jpg',
+      };
+      const dto = {
+        fullName: 'New Name',
+        avatarUrl: 'https://res.cloudinary.com/new.jpg',
+      };
+      const updated = { ...user, ...dto };
+
+      //@ts-ignore
+      mockRepo.findById.mockResolvedValue(user);
+      //@ts-ignore
+      mockRepo.updateProfile.mockResolvedValue(updated);
+      mockCloudinaryService.deleteFile.mockResolvedValue({});
+
+      const result = await service.updateProfile('user1', dto);
+
+      expect(result).toEqual({
+        id: 'user1',
+        fullName: 'New Name',
+        avatarUrl: 'https://res.cloudinary.com/new.jpg',
+      });
+      expect(extractPublicId).toHaveBeenCalledWith(
+        'https://res.cloudinary.com/old.jpg',
+      );
+      expect(mockCloudinaryService.deleteFile).toHaveBeenCalledWith(
+        'old_public_id',
+      );
+      expect(mockRepo.updateProfile).toHaveBeenCalledWith('user1', dto);
+    });
+
+    it('should not delete avatar if new avatar is same as old', async () => {
+      const user = {
+        id: 'user1',
+        avatarUrl: 'https://res.cloudinary.com/avatar.jpg',
+      };
+      const dto = { avatarUrl: 'https://res.cloudinary.com/avatar.jpg' };
+      //@ts-ignore
+      mockRepo.findById.mockResolvedValue(user);
+      //@ts-ignore
+      mockRepo.updateProfile.mockResolvedValue({ ...user, ...dto });
+
+      const result = await service.updateProfile('user1', dto);
+      expect(mockCloudinaryService.deleteFile).not.toHaveBeenCalled();
+    });
+
+    it('should throw NotFoundException if user does not exist', async () => {
+      mockRepo.findById.mockResolvedValue(null);
+      await expect(service.updateProfile('invalid', {})).rejects.toThrow(
+        NotFoundException,
+      );
+    });
   });
 
   it('should add Sabi score and emit event', async () => {

@@ -121,7 +121,7 @@ model Review {
   productId          String
   rating             Int
   comment            String?
-  images             String[]
+  audioUrl           String?   // URL of voice recording (Cloudinary/S3)
   isVerifiedPurchase Boolean  @default(false)
   createdAt          DateTime @default(now())
 

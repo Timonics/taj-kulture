@@ -10,12 +10,15 @@ import { UserSabiScoreUpdatedEvent } from '../domain/events/user-sabi-score-upda
 import { UserReferredEvent } from '../domain/events/user-referred.event';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { ApplyReferralDto } from './dto/apply-referral.dto';
+import { extractPublicId } from '@/shared/utils/cloudinary.util';
+import { CloudinaryService } from '@/shared/infrastructure/cloudinary/cloudinary.service';
 
 @Injectable()
 export class UserService {
   constructor(
     @Inject('UserRepository') private userRepository: UserRepository,
     private eventEmitter: EventEmitter2,
+    private cloudinaryService: CloudinaryService,
   ) {}
 
   async getProfile(userId: string) {
@@ -28,6 +31,15 @@ export class UserService {
 
   async updateProfile(userId: string, dto: UpdateProfileDto) {
     const user = await this.userRepository.updateProfile(userId, dto);
+    if (!user) throw new NotFoundException('User not found');
+
+    // If avatar is being replaced, delete old avatar from Cloudinary
+    if (dto.avatarUrl && user.avatarUrl && user.avatarUrl !== dto.avatarUrl) {
+      const oldPublicId = extractPublicId(user.avatarUrl);
+      if (oldPublicId) {
+        await this.cloudinaryService.deleteFile(oldPublicId);
+      }
+    }
     const { refreshTokenHash, ...safeUser } = user;
     return safeUser;
   }
@@ -61,7 +73,7 @@ export class UserService {
     const referrer = await this.userRepository.findByReferralCode(
       dto.referralCode,
     );
-    if (!referrer) return('Invalid referral code');
+    if (!referrer) return 'Invalid referral code';
     // Create referral record (ensure unique)
     await this.userRepository.createReferral(referrer.id, userId);
     // Award Sabi points to referrer (e.g., 50 points)

@@ -9,6 +9,8 @@ import { RedisModule } from './shared/infrastructure/redis/redis.module';
 import { QueueModule } from './shared/infrastructure/queue/queue.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
+import { CloudinaryModule } from './shared/infrastructure/cloudinary/cloudinary.module';
+import { UploadModule } from './modules/upload/upload.module';
 
 @Module({
   imports: [
@@ -19,6 +21,8 @@ import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
     RedisModule,
     QueueModule,
     AuthModule,
+    CloudinaryModule,
+    UploadModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: JwtAuthGuard },

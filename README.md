@@ -1,98 +1,370 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+```markdown
+# TAJ Kulture Backend
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+**TAJ Kulture** is a streetwear clothing brand for Nigerian Gen Z. This backend serves as the core e‑commerce, community, and gamification platform – built with **NestJS**, **Prisma**, **PostgreSQL**, **Redis**, and **Bull** queues.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+---
 
-## Description
+## 🚀 Features (Production‑Ready MVP)
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+### Core Commerce
+- **User Auth** – OTP via SMS/email, JWT access + refresh tokens, logout.
+- **Product Catalog** – Full CRUD, variants (size/color), limited drops (time‑based).
+- **Shopping Cart** – Persistent cart stored in Redis.
+- **Checkout & Payments** – Paystack integration, webhook verification, order status management.
+- **Inventory Management** – Auto‑deduct stock after payment (async via Bull).
+- **Order History** – Users can view past orders and statuses.
 
-## Project setup
+### Unique Street Culture Features
+- **Voice Reviews** – Upload audio reviews (Cloudinary), optional text comment, verified purchase badge.
+- **Lookbook** – Users upload outfit photos, tag products, admin moderation. Approved posts earn Sabi points.
+- **Sabi Score** – Gamified loyalty points earned by:
+  - Registration (10 pts)
+  - Referral (50 pts for referrer)
+  - Lookbook approval (15 pts)
+  - Order completion (20 pts)
+- **Referral System** – Unique codes, reward both parties, track conversions.
 
-```bash
-$ npm install
+### Admin Capabilities
+- Manage products, variants, limited drops.
+- Moderate lookbook posts (approve/reject).
+- View pending reviews and orders.
+- (Optional) analytics dashboard endpoints.
+
+### Event‑Driven & Asynchronous Processing
+- **Domain Events** – `UserRegistered`, `OrderPaid`, `LookbookApproved`, `LowStock`.
+- **Bull Queues** – Email, push notifications, inventory deduction, Sabi score updates, analytics.
+- **Event Handlers** – Decouple side effects from main transaction.
+
+---
+
+## 🧱 Tech Stack
+
+| Layer          | Technology                               |
+|----------------|------------------------------------------|
+| Framework      | NestJS (Node.js + TypeScript)            |
+| Database       | PostgreSQL (with Prisma ORM)             |
+| Cache / OTP    | Redis (ioredis)                          |
+| Queues         | Bull (backed by Redis)                   |
+| File Storage   | Cloudinary (images, audio)               |
+| Payments       | Paystack                                 |
+| Email / SMS    | Placeholder – integrate with Termii / SendGrid |
+| Testing        | Jest                                     |
+| Deployment     | Docker + GitHub Actions (optional)       |
+
+---
+
+## 📁 Project Structure (DDD‑Lite)
+
+```
+src/
+├── modules/
+│   ├── auth/          # OTP, JWT, registration
+│   ├── user/          # Profile, Sabi score, referrals
+│   ├── product/       # Catalog, variants, drops
+│   ├── order/         # Cart, checkout, Paystack webhook
+│   ├── review/        # Text + voice reviews
+│   ├── lookbook/      # UGC gallery, moderation
+│   └── upload/        # Cloudinary file uploads
+├── shared/
+│   ├── infrastructure/ # Prisma, Redis, Bull queues, Cloudinary
+│   └── utils/         # Cloudinary URL parser, OTP generator
+├── common/            # Guards (JWT, roles), decorators
+└── config/            # Environment configuration
 ```
 
-## Compile and run the project
+---
+
+## ⚙️ Setup & Installation
+
+### Prerequisites
+- Node.js 18+
+- Docker & Docker Compose (for Postgres + Redis)
+- Cloudinary account (for file uploads)
+- Paystack test keys
+
+### 1. Clone & Install
 
 ```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+git clone https://github.com/your-org/taj-kulture-backend.git
+cd taj-kulture-backend
+npm install
 ```
 
-## Run tests
+### 2. Environment Variables
+
+Copy `.env.example` to `.env` and fill in:
+
+```env
+# App
+NODE_ENV=development
+PORT=3000
+
+# Database
+DATABASE_URL="postgresql://postgres:postgres@localhost:5432/taj_kulture?schema=public"
+
+# Redis
+REDIS_HOST=localhost
+REDIS_PORT=6379
+
+# JWT
+JWT_SECRET=your_secret
+JWT_REFRESH_SECRET=another_secret
+JWT_EXPIRES_IN=15m
+JWT_REFRESH_EXPIRES_IN=7d
+
+# Cloudinary
+CLOUDINARY_CLOUD_NAME=your_cloud_name
+CLOUDINARY_API_KEY=your_api_key
+CLOUDINARY_API_SECRET=your_api_secret
+
+# Paystack
+PAYSTACK_SECRET_KEY=sk_test_...
+PAYSTACK_CALLBACK_URL=https://your-frontend.com/order/success
+
+# SMS (Termii) – optional
+TERMII_API_KEY=...
+TERMII_SENDER_ID=TAJKulture
+```
+
+### 3. Start Dependencies (Docker)
 
 ```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+docker-compose up -d   # PostgreSQL + Redis
 ```
 
-## Deployment
-
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+### 4. Database Migrations & Seed
 
 ```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+npx prisma migrate dev --name init
+npx prisma generate
+# Optional: seed initial admin user and products
+npm run seed
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+### 5. Run the Application
 
-## Resources
+```bash
+# Development
+npm run start:dev
 
-Check out a few resources that may come in handy when working with NestJS:
+# Production build
+npm run build
+npm run start:prod
+```
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+### 6. Run Tests
 
-## Support
+```bash
+# Unit tests
+npm run test
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+# Specific module
+npm run test -- auth.service.spec.ts
 
-## Stay in touch
+# E2E (if any)
+npm run test:e2e
+```
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+---
 
-## License
+## 🔌 API Overview (Key Endpoints)
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+### Authentication
+
+| Method | Endpoint                  | Description |
+|--------|---------------------------|-------------|
+| POST   | `/auth/request-otp`       | Request OTP (SMS placeholder) |
+| POST   | `/auth/verify-otp`        | Verify OTP, login/register |
+| POST   | `/auth/refresh`           | Get new access token |
+| POST   | `/auth/logout`            | Invalidate refresh token |
+
+### Products (Public)
+
+| Method | Endpoint                     | Description |
+|--------|------------------------------|-------------|
+| GET    | `/products`                  | List products (filters: category, collection, search, pagination) |
+| GET    | `/products/:slug`            | Get product with variants |
+| GET    | `/products/:productId/variants` | List variants of a product |
+
+### Cart & Orders (Authenticated)
+
+| Method | Endpoint                  | Description |
+|--------|---------------------------|-------------|
+| GET    | `/order/cart`             | Get current cart |
+| POST   | `/order/cart`             | Add item to cart |
+| DELETE | `/order/cart/:variantId`  | Remove item |
+| POST   | `/order/checkout`         | Create order, return Paystack URL |
+| POST   | `/order/webhook/paystack` | Paystack webhook (public) |
+
+### Reviews
+
+| Method | Endpoint                     | Description |
+|--------|------------------------------|-------------|
+| GET    | `/reviews/product/:productId` | List product reviews (public) |
+| POST   | `/reviews/product/:productId` | Create review (text + optional audioUrl) |
+| DELETE | `/reviews/:id`               | Delete own review |
+
+### Lookbook
+
+| Method | Endpoint                     | Description |
+|--------|------------------------------|-------------|
+| GET    | `/lookbook`                  | Public gallery (approved only) |
+| POST   | `/lookbook`                  | Upload lookbook post (pending) |
+| GET    | `/lookbook/me`               | My posts |
+| PUT    | `/lookbook/:id/moderate`     | Admin approve/reject |
+
+### User Profile
+
+| Method | Endpoint        | Description |
+|--------|-----------------|-------------|
+| GET    | `/users/me`     | Get profile |
+| PATCH  | `/users/me`     | Update profile (avatarUrl, fullName) |
+| POST   | `/users/referral/apply` | Apply referral code |
+
+### Admin (Requires `role: admin`)
+
+| Method | Endpoint                     | Description |
+|--------|------------------------------|-------------|
+| POST   | `/products`                  | Create product |
+| PUT    | `/products/:id`              | Update product |
+| DELETE | `/products/:id`              | Delete product + images |
+| POST   | `/products/:productId/variants` | Add variant |
+| GET    | `/lookbook/admin/pending`    | Pending lookbook posts |
+
+---
+
+## 🧠 Event‑Driven Architecture
+
+All side effects are handled asynchronously via **domain events** and **Bull queues**.
+
+| Event                  | Trigger                        | Queued Jobs                         |
+|------------------------|--------------------------------|--------------------------------------|
+| `auth.user.registered` | New user registers             | Welcome email, push notification, analytics |
+| `order.created`        | Checkout completed             | Order confirmation email, push notification |
+| `order.paid`           | Paystack webhook success       | Inventory deduction, Sabi score (+20), payment confirmation email |
+| `lookbook.post.approved` | Admin approves lookbook      | Push notification, Sabi score (+15) |
+| `product.lowStock`     | Variant stock ≤5               | Admin email alert, push notification |
+
+**Queue workers** (`email`, `notification`, `inventory`, `sabi-score`, `analytics`) run in the background with retries and error handling.
+
+---
+
+## 🧪 Testing Strategy
+
+- **Unit tests** for all services, controllers, and event handlers.
+- **Mock repositories** (Prisma), external services (Cloudinary, Paystack), and Redis.
+- **Coverage** >80% for critical modules (auth, order, product, lookbook).
+- Run `npm run test:cov` to view coverage report.
+
+Example test files:
+- `auth.service.spec.ts`
+- `order.service.spec.ts`
+- `product.service.spec.ts`
+- `lookbook.service.spec.ts`
+- `upload.controller.spec.ts`
+
+---
+
+## 🐳 Docker Deployment (Production)
+
+Build and run with Docker Compose:
+
+```yaml
+# docker-compose.prod.yml
+version: '3.8'
+services:
+  api:
+    build: .
+    ports:
+      - "3000:3000"
+    depends_on:
+      - postgres
+      - redis
+    env_file: .env.production
+  postgres:
+    image: postgres:15
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+  redis:
+    image: redis:7-alpine
+volumes:
+  pgdata:
+```
+
+Build & start:
+
+```bash
+docker-compose -f docker-compose.prod.yml up -d --build
+```
+
+---
+
+## 📦 Seed Script (Example)
+
+Run `npm run seed` to populate:
+- Admin user (email: admin@tajkulture.com, role: admin)
+- Sample products (t‑shirts, hoodies, caps)
+- Lookbook posts for testing
+
+---
+
+## 🔐 Security & Best Practices
+
+- JWT access tokens (short‑lived) + refresh tokens (stored hashed).
+- Rate limiting (`ThrottlerModule`) on auth endpoints.
+- Paystack webhook signature verification (HMAC‑SHA512).
+- Cloudinary uploads with resource type auto‑detection.
+- Prisma migrations with indexes for performance.
+- No hard‑coded secrets – all via environment variables.
+
+---
+
+## 🧑‍💻 Development Notes
+
+### Adding a new module
+1. Create module, controller, service with DDD‑lite structure.
+2. Add repository interface and Prisma implementation.
+3. Define domain events (if needed).
+4. Register in `app.module.ts`.
+5. Write unit tests.
+
+### Working with queues
+- Emit event from service: `eventEmitter.emit('order.paid', new OrderPaidEvent(...))`.
+- Handler dispatches Bull job: `queueService.addInventoryJob(orderId)`.
+- Processor (e.g., `InventoryProcessor`) performs actual work.
+
+### File uploads
+- Frontend uploads file to `/upload/single` → gets `{ url, publicId }`.
+- Backend receives URL in DTO and stores it.
+- On delete/update, extract `publicId` and call `cloudinaryService.deleteFile()`.
+
+---
+
+## 📈 Future Enhancements (Post‑MVP)
+
+- Promo codes / discounts
+- Geo‑drops (city‑specific products)
+- Community voting for next drop
+- Real‑time WebSocket notifications
+- Shipping integration (GIG Logistics)
+- Admin analytics dashboard
+- Push notifications (Firebase)
+
+---
+
+## 👥 Contributing
+
+Internal use only (TAJ Kulture team). Follow conventional commits and run tests before pushing.
+
+---
+
+## 📄 License
+
+Proprietary – all rights reserved.
+
+---
+
+**TAJ Kulture – Where street culture meets community.**  
+Built with ❤️ for Nigerian Gen Z.
+```
