@@ -48,9 +48,9 @@
 | Queues         | Bull (backed by Redis)                   |
 | File Storage   | Cloudinary (images, audio)               |
 | Payments       | Paystack                                 |
-| Email / SMS    | Placeholder – integrate with Termii / SendGrid |
+| Email / SMS    | Termii / SendGrid                        |
 | Testing        | Jest                                     |
-| Deployment     | Docker + GitHub Actions (optional)       |
+| Deployment     | Docker + GitHub Actions       |
 
 ---
 
