@@ -28,7 +28,7 @@
 - Manage products, variants, limited drops.
 - Moderate lookbook posts (approve/reject).
 - View pending reviews and orders.
-- (Optional) analytics dashboard endpoints.
+- analytics dashboard endpoints.
 
 ### Event‑Driven & Asynchronous Processing
 - **Domain Events** – `UserRegistered`, `OrderPaid`, `LookbookApproved`, `LowStock`.
@@ -53,7 +53,7 @@
 
 ---
 
-## 📁 Project Structure (DDD‑Lite)
+## 📁 Project Structure
 
 ```
 src/
