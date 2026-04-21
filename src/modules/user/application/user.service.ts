@@ -64,10 +64,7 @@ export class UserService {
     if (user.referralCode === dto.referralCode) {
       throw new BadRequestException('You cannot use your own referral code');
     }
-    // Check if already referred
-    const existingReferral = await this.userRepository.findByReferralCode(
-      dto.referralCode,
-    );
+    
     // Actually, we need to check if this user already has a referral record
     // For brevity, assume check in repository method. We'll implement a method.
     const referrer = await this.userRepository.findByReferralCode(

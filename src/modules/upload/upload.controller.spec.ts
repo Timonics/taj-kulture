@@ -58,7 +58,7 @@ describe('UploadController', () => {
       ];
       mockCloudinaryService.uploadMultipleFiles.mockResolvedValue(mockResults as any);
 
-      const result = await controller.uploadMultiple(mockFiles, { folder: 'audio' });
+      const result = await controller.uploadMultiple(mockFiles, { folder: 'audio', resource_type: 'auto' });
       expect(result).toHaveLength(2);
       expect(result[0]).toHaveProperty('url', 'url1');
       expect(mockCloudinaryService.uploadMultipleFiles).toHaveBeenCalledWith(mockFiles, {

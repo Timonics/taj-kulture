@@ -23,6 +23,7 @@ import { UserModule } from '../user/user.module';
     PaystackService,
     { provide: 'OrderRepository', useClass: PrismaOrderRepository },
     { provide: 'CartRepository', useClass: RedisCartRepository },
+    { provide: 'UserRepository', useClass: PrismaOrderRepository },
   ],
 })
 export class OrderModule {}

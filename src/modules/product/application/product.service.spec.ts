@@ -62,6 +62,7 @@ describe('ProductService', () => {
         basePrice: 5000,
         category: 'T-Shirts',
         description: 'A cool tee',
+        images: ["some-image"],
       };
       const created = { id: 'prod1', ...dto };
       mockRepo.findProductBySlug.mockResolvedValue(null);

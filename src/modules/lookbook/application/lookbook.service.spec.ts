@@ -9,12 +9,14 @@ import { UpdateLookbookStatusDto } from './dto/update-lookbook-status.dto';
 import { LookbookPostCreatedEvent } from '../domain/events/lookbook-post-created.event';
 import { LookbookPostApprovedEvent } from '../domain/events/lookbook-post-approved.event';
 import { LookbookPostRejectedEvent } from '../domain/events/lookbook-post-rejected.event';
+import { CloudinaryService } from '@/shared/infrastructure/cloudinary/cloudinary.service';
 
 describe('LookbookService', () => {
   let service: LookbookService;
   let mockRepo: jest.Mocked<LookbookRepository>;
   let mockEventEmitter: jest.Mocked<EventEmitter2>;
   let mockUserService: jest.Mocked<UserService>;
+  let mockCloudinaryService: jest.Mocked<CloudinaryService>;
 
   beforeEach(async () => {
     mockRepo = {
@@ -30,11 +32,13 @@ describe('LookbookService', () => {
 
     mockEventEmitter = { emit: jest.fn() } as any;
     mockUserService = { addSabiScore: jest.fn() } as any;
+    mockCloudinaryService = { uploadFile: jest.fn() } as any;
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         LookbookService,
         { provide: 'LookbookRepository', useValue: mockRepo },
+        { provide: CloudinaryService, useValue: mockCloudinaryService },
         { provide: EventEmitter2, useValue: mockEventEmitter },
         { provide: UserService, useValue: mockUserService },
       ],
@@ -157,7 +161,7 @@ describe('LookbookService', () => {
       const updated = { ...post, status: 'approved' };
       mockRepo.findById.mockResolvedValue(post as any);
       mockRepo.updateStatus.mockResolvedValue(updated as any);
-    //   mockUserService.addSabiScore.mockResolvedValue(undefined);
+      //   mockUserService.addSabiScore.mockResolvedValue(undefined);
 
       const result = await service.moderatePost(postId, dto);
 

@@ -4,12 +4,14 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import { ReviewService } from './review.service';
 import { ReviewRepository } from '../domain/review.repository.interface';
 import { PrismaService } from '../../../shared/infrastructure/database/prisma.service';
+import { CloudinaryService } from '@/shared/infrastructure/cloudinary/cloudinary.service';
 
 describe('ReviewService', () => {
   let service: ReviewService;
   let mockRepo: jest.Mocked<ReviewRepository>;
   let mockPrisma: any;
   let mockEventEmitter: jest.Mocked<EventEmitter2>;
+  let mockCloudinaryService: jest.Mocked<CloudinaryService>;
 
   beforeEach(async () => {
     mockRepo = {
@@ -27,11 +29,19 @@ describe('ReviewService', () => {
       order: { findFirst: jest.fn() },
     };
 
+    mockCloudinaryService = {
+      uploadFile: jest.fn(),
+      uploadMultipleFiles: jest.fn(),
+      deleteFile: jest.fn(),
+      getFileUrl: jest.fn(),
+    } as any;
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         ReviewService,
         { provide: 'ReviewRepository', useValue: mockRepo },
         { provide: EventEmitter2, useValue: mockEventEmitter },
+        { provide: CloudinaryService, useValue: mockCloudinaryService },
         { provide: PrismaService, useValue: mockPrisma },
       ],
     }).compile();
